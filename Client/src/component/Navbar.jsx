@@ -127,7 +127,7 @@ export default function Navbar() {
         {/* Movies */}
         <Link
           onClick={handleClose}
-          to="/"
+          to="/Movies"
           className="
             relative
             hover:text-white
@@ -150,7 +150,7 @@ export default function Navbar() {
         {/* Theater */}
         <Link
           onClick={handleClose}
-          to="/"
+          to="/Theater"
           className="
             relative
             hover:text-white
@@ -173,7 +173,7 @@ export default function Navbar() {
         {/* Released */}
         <Link
           onClick={handleClose}
-          to="/"
+          to="/Released"
           className="
             relative
             hover:text-white
