@@ -4,6 +4,14 @@ import { useNavigate } from "react-router-dom";
 const MovieCard = ({ movie }) => {
   const navigate = useNavigate();
 
+  // Convert minutes into hours and minutes
+  const timeFormat = (minutes) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+
+    return `${hours}h ${mins}m`;
+  };
+
   const handleMovieClick = () => {
     navigate(`/movies/${movie.id}`);
     window.scrollTo(0, 0);
@@ -44,7 +52,7 @@ const MovieCard = ({ movie }) => {
           .map((genre) => genre.name)
           .join(" | ")}
         {" • "}
-        {movie.runtime} min
+        {timeFormat(movie.runtime)}
       </p>
 
       {/* Bottom */}
@@ -73,6 +81,7 @@ const MovieCard = ({ movie }) => {
         {/* Rating */}
         <p className="flex items-center gap-1 text-sm text-gray-400">
           <StarIcon className="h-4 w-4 text-primary fill-primary" />
+
           {movie.vote_average.toFixed(1)}
         </p>
 
