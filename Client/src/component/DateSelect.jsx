@@ -5,7 +5,10 @@ import {
   Clock3,
 } from "lucide-react";
 
+import { useNavigate } from "react-router-dom";
+
 const DateSelect = ({
+  movieId,
   dates,
   selectedDate,
   setSelectedDate,
@@ -14,291 +17,510 @@ const DateSelect = ({
   setSelectedTime,
   formatDate,
   formatTime,
-  handleBooking,
-  dateTime,
 }) => {
+  const navigate = useNavigate();
+
+  // --------------------------------------------------
+  // SELECT SEATS
+  // --------------------------------------------------
+  const handleSelectSeats = () => {
+    if (!movieId) {
+      console.error("Movie ID is missing");
+      return;
+    }
+
+    if (!selectedDate) {
+      return;
+    }
+
+    if (!selectedTime?.showId) {
+      return;
+    }
+
+    // ------------------------------------------------
+    // Navigate to Seat Layout
+    //
+    // Example:
+    // /Movies/123/2026-09-05?showId=show123
+    // ------------------------------------------------
+    navigate(
+      `/Movies/${movieId}/${encodeURIComponent(
+        selectedDate
+      )}?showId=${encodeURIComponent(
+        selectedTime.showId
+      )}`
+    );
+  };
+
+  // --------------------------------------------------
+  // PREVIOUS DATE
+  // --------------------------------------------------
+  const handlePreviousDate = () => {
+    const currentIndex = dates.indexOf(selectedDate);
+
+    if (currentIndex > 0) {
+      const previousDate = dates[currentIndex - 1];
+
+      setSelectedDate(previousDate);
+      setSelectedTime(null);
+    }
+  };
+
+  // --------------------------------------------------
+  // NEXT DATE
+  // --------------------------------------------------
+  const handleNextDate = () => {
+    const currentIndex = dates.indexOf(selectedDate);
+
+    if (
+      currentIndex !== -1 &&
+      currentIndex < dates.length - 1
+    ) {
+      const nextDate = dates[currentIndex + 1];
+
+      setSelectedDate(nextDate);
+      setSelectedTime(null);
+    }
+  };
+
   return (
     <section
-      id="booking"
       className="
+        w-full
         max-w-7xl
         mx-auto
         px-6
         md:px-10
         lg:px-16
-        py-20
+        mt-12
+        pb-10
       "
     >
-      {/* Heading */}
-      <div className="mb-8">
-        <p className="text-2xl md:text-3xl font-semibold">
-          Choose Date & Time
-        </p>
 
-        <p className="text-gray-400 mt-2">
-          Select your preferred date and showtime.
-        </p>
+      {/* =================================================
+          HEADING
+      ================================================== */}
+
+      <div className="flex items-center gap-3 mb-6">
+
+        <CalendarDays
+          className="
+            w-6
+            h-6
+            text-indigo-400
+          "
+        />
+
+        <div>
+          <h2
+            className="
+              text-xl
+              sm:text-2xl
+              font-semibold
+              text-white
+            "
+          >
+            Select Date & Time
+          </h2>
+
+          <p
+            className="
+              text-sm
+              text-slate-400
+              mt-1
+            "
+          >
+            Choose your preferred date and showtime
+          </p>
+        </div>
+
       </div>
 
-      {/* Booking Box */}
-      <div
-        className="
-          relative
-          overflow-hidden
-          rounded-3xl
-          border
-          border-[#f84565]/20
-          bg-[#f84565]/5
-          p-6
-          md:p-8
-        "
-      >
-        {/* Glow */}
-        <div
-          className="
-            absolute
-            -top-24
-            -left-24
-            w-60
-            h-60
-            rounded-full
-            bg-[#f84565]/20
-            blur-3xl
-          "
-        />
+      {/* =================================================
+          DATE SELECTOR
+      ================================================== */}
 
-        <div
-          className="
-            absolute
-            -bottom-24
-            -right-24
-            w-60
-            h-60
-            rounded-full
-            bg-[#f84565]/10
-            blur-3xl
-          "
-        />
+      {dates?.length > 0 ? (
+        <div className="relative">
 
-        <div className="relative z-10">
+          {/* LEFT */}
+          <button
+            type="button"
+            onClick={handlePreviousDate}
+            disabled={
+              dates.indexOf(selectedDate) <= 0
+            }
+            className="
+              absolute
+              left-0
+              top-1/2
+              -translate-y-1/2
+              z-10
+              w-10
+              h-10
+              rounded-full
+              bg-slate-800
+              border
+              border-white/10
+              text-white
+              flex
+              items-center
+              justify-center
+              hover:bg-slate-700
+              disabled:opacity-30
+              disabled:cursor-not-allowed
+              transition
+            "
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
 
-          {/* Dates */}
-          <div className="flex items-center gap-4">
+          {/* DATES */}
+          <div
+            className="
+              flex
+              gap-3
+              overflow-x-auto
+              px-14
+              pb-3
+              scrollbar-hide
+            "
+          >
+            {dates.map((date) => {
 
-            {/* Previous */}
-            <button
-              className="
-                hidden
-                md:flex
-                p-2
-                rounded-full
-                bg-white/5
-                hover:bg-white/10
-                transition
-              "
-            >
-              <ChevronLeft />
-            </button>
+              const isSelected =
+                selectedDate === date;
 
-            {/* Date List */}
-            <div
-              className="
-                flex
-                gap-3
-                overflow-x-auto
-                no-scrollbar
-                flex-1
-              "
-            >
-              {dates.map((date) => {
+              return (
+                <button
+                  type="button"
+                  key={date}
+                  onClick={() => {
+                    setSelectedDate(date);
+                    setSelectedTime(null);
+                  }}
+                  className={`
+                    min-w-[110px]
+                    sm:min-w-[125px]
+                    px-5
+                    py-4
+                    rounded-2xl
+                    border
+                    transition-all
+                    duration-300
 
-                const isActive = selectedDate === date;
+                    ${
+                      isSelected
+                        ? `
+                          bg-indigo-600
+                          border-indigo-400
+                          text-white
+                          shadow-lg
+                          shadow-indigo-500/20
+                        `
+                        : `
+                          bg-white/5
+                          border-white/10
+                          text-slate-300
+                          hover:bg-white/10
+                        `
+                    }
+                  `}
+                >
 
-                return (
-                  <button
-                    key={date}
-                    onClick={() => {
-                      setSelectedDate(date);
-                      setSelectedTime(null);
-                    }}
-                    className={`
-                      min-w-[100px]
-                      px-4
-                      py-3
-                      rounded-xl
-                      border
-                      transition
-
-                      ${
-                        isActive
-                          ? "bg-[#f84565] border-[#f84565]"
-                          : "bg-white/5 border-white/10 hover:border-[#f84565]/50"
-                      }
-                    `}
+                  <p
+                    className="
+                      text-xs
+                      uppercase
+                      tracking-wider
+                      opacity-70
+                    "
                   >
-                    <CalendarDays
-                      className="
-                        w-5
-                        h-5
-                        mx-auto
-                        mb-2
-                      "
-                    />
+                    {formatDate
+                      ? formatDate(date)
+                      : date}
+                  </p>
 
-                    <p className="text-sm font-medium">
-                      {formatDate(date)}
-                    </p>
+                  <p
+                    className="
+                      text-lg
+                      font-semibold
+                      mt-1
+                    "
+                  >
+                    {new Date(date).getDate()}
+                  </p>
 
-                    <p className="text-xs mt-1 opacity-70">
-                      {dateTime[date].length} Shows
-                    </p>
-                  </button>
-                );
-              })}
-            </div>
+                  <p
+                    className="
+                      text-xs
+                      mt-1
+                      opacity-70
+                    "
+                  >
+                    {new Date(date).toLocaleDateString(
+                      "en-IN",
+                      {
+                        month: "short",
+                      }
+                    )}
+                  </p>
 
-            {/* Next */}
-            <button
+                </button>
+              );
+            })}
+          </div>
+
+          {/* RIGHT */}
+          <button
+            type="button"
+            onClick={handleNextDate}
+            disabled={
+              dates.indexOf(selectedDate) ===
+              dates.length - 1
+            }
+            className="
+              absolute
+              right-0
+              top-1/2
+              -translate-y-1/2
+              z-10
+              w-10
+              h-10
+              rounded-full
+              bg-slate-800
+              border
+              border-white/10
+              text-white
+              flex
+              items-center
+              justify-center
+              hover:bg-slate-700
+              disabled:opacity-30
+              disabled:cursor-not-allowed
+              transition
+            "
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+
+        </div>
+      ) : (
+        <p className="text-slate-400">
+          No dates available.
+        </p>
+      )}
+
+      {/* =================================================
+          SHOW TIMES
+      ================================================== */}
+
+      {selectedDate && (
+        <div className="mt-8">
+
+          <div className="flex items-center gap-2 mb-5">
+
+            <Clock3
               className="
-                hidden
-                md:flex
-                p-2
-                rounded-full
-                bg-white/5
-                hover:bg-white/10
-                transition
+                w-5
+                h-5
+                text-indigo-400
+              "
+            />
+
+            <h3
+              className="
+                text-lg
+                font-semibold
+                text-white
               "
             >
-              <ChevronRight />
-            </button>
+              Available Showtimes
+            </h3>
 
           </div>
 
+          <div className="flex flex-wrap gap-3">
 
-          {/* Selected Date */}
-          {selectedDate && (
-            <div className="mt-10">
+            {selectedShows?.length > 0 ? (
+              selectedShows.map((showTime) => {
 
-              {/* Showtime Heading */}
-              <div
-                className="
-                  flex
-                  items-center
-                  gap-2
-                  mb-5
-                "
-              >
-                <Clock3 className="w-5 h-5 text-[#f84565]" />
+                const isSelected =
+                  selectedTime?.showId ===
+                  showTime.showId;
 
-                <h3 className="font-semibold">
-                  Available Showtimes
-                </h3>
-              </div>
-
-
-              {/* Showtimes */}
-              <div
-                className="
-                  grid
-                  grid-cols-2
-                  sm:grid-cols-3
-                  md:grid-cols-4
-                  lg:grid-cols-6
-                  gap-3
-                "
-              >
-                {selectedShows.map((showTime) => {
-
-                  const active =
-                    selectedTime?.showId === showTime.showId;
-
-                  return (
-                    <button
-                      key={showTime.showId}
-                      onClick={() =>
-                        setSelectedTime(showTime)
-                      }
-                      className={`
-                        px-4
-                        py-3
-                        rounded-xl
-                        border
-                        transition
-
-                        ${
-                          active
-                            ? "bg-[#f84565] border-[#f84565]"
-                            : "bg-white/5 border-white/10 hover:border-[#f84565]"
-                        }
-                      `}
-                    >
-                      {formatTime(showTime.time)}
-                    </button>
-                  );
-                })}
-              </div>
-
-
-              {/* Continue / Select Seats */}
-              {selectedTime && (
-                <div
-                  className="
-                    mt-8
-                    flex
-                    flex-col
-                    sm:flex-row
-                    items-center
-                    justify-between
-                    gap-5
-                    p-5
-                    rounded-2xl
-                    bg-black/20
-                    border
-                    border-white/10
-                  "
-                >
-                  <div>
-                    <p className="text-gray-400 text-sm">
-                      Selected Show
-                    </p>
-
-                    <p className="font-semibold mt-1">
-                      {formatDate(selectedDate)}
-                      {" • "}
-                      {formatTime(selectedTime.time)}
-                    </p>
-                  </div>
-
+                return (
                   <button
+                    type="button"
+                    key={showTime.showId}
                     onClick={() =>
-                      handleBooking(selectedTime)
+                      setSelectedTime(showTime)
                     }
-                    className="
-                      w-full
-                      sm:w-auto
-                      px-8
+                    className={`
+                      px-5
                       py-3
-                      rounded-full
-                      bg-[#f84565]
-                      hover:bg-[#d63854]
-                      transition
-                      font-semibold
-                      active:scale-95
-                    "
-                  >
-                    Select Seats
-                  </button>
-                </div>
-              )}
+                      rounded-xl
+                      border
+                      text-sm
+                      font-medium
+                      transition-all
+                      duration-300
 
-            </div>
-          )}
+                      ${
+                        isSelected
+                          ? `
+                            bg-indigo-600
+                            border-indigo-400
+                            text-white
+                            shadow-lg
+                            shadow-indigo-500/20
+                          `
+                          : `
+                            bg-white/5
+                            border-white/10
+                            text-slate-300
+                            hover:bg-white/10
+                            hover:border-indigo-400/40
+                          `
+                      }
+                    `}
+                  >
+                    {formatTime
+                      ? formatTime(showTime.time)
+                      : showTime.time}
+                  </button>
+                );
+              })
+            ) : (
+              <p className="text-slate-400 text-sm">
+                No shows available for this date.
+              </p>
+            )}
+
+          </div>
+        </div>
+      )}
+
+      {/* =================================================
+          SELECTED SHOW / SELECT SEATS
+      ================================================== */}
+
+      {selectedTime && (
+        <div
+          className="
+            mt-8
+            flex
+            flex-col
+            sm:flex-row
+            items-center
+            justify-between
+            gap-5
+            p-5
+            rounded-2xl
+            bg-black/20
+            border
+            border-white/10
+          "
+        >
+
+          {/* SELECTED SHOW */}
+          <div className="w-full sm:w-auto">
+
+            <p
+              className="
+                text-xs
+                text-slate-400
+                uppercase
+                tracking-wider
+              "
+            >
+              Selected Show
+            </p>
+
+            <p
+              className="
+                text-white
+                font-semibold
+                mt-1
+              "
+            >
+              {formatTime
+                ? formatTime(selectedTime.time)
+                : selectedTime.time}
+            </p>
+
+            {selectedTime.typename && (
+              <p
+                className="
+                  text-xs
+                  text-slate-500
+                  mt-1
+                "
+              >
+                {selectedTime.typename}
+              </p>
+            )}
+
+          </div>
+
+          {/* DATE */}
+          <div className="hidden sm:block">
+
+            <p
+              className="
+                text-xs
+                text-slate-400
+                uppercase
+                tracking-wider
+              "
+            >
+              Date
+            </p>
+
+            <p
+              className="
+                text-white
+                font-semibold
+                mt-1
+              "
+            >
+              {formatDate
+                ? formatDate(selectedDate)
+                : selectedDate}
+            </p>
+
+          </div>
+
+          {/* SELECT SEATS */}
+          <button
+            type="button"
+            onClick={handleSelectSeats}
+            className="
+              w-full
+              sm:w-auto
+              px-7
+              py-3.5
+              rounded-xl
+              bg-indigo-600
+              hover:bg-indigo-500
+              text-white
+              font-semibold
+              transition-all
+              duration-300
+              shadow-lg
+              shadow-indigo-600/20
+              hover:scale-[1.02]
+              active:scale-95
+            "
+          >
+            Select Seats
+          </button>
 
         </div>
-      </div>
+      )}
+
     </section>
   );
 };
 
 export default DateSelect;
-

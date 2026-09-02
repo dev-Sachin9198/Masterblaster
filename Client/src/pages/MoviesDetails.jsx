@@ -96,7 +96,6 @@ export default function MoviesDetails() {
   // Get Movie
   // ------------------------------------------------
   useEffect(() => {
-    // Start loading
     setLoading(true);
 
     const movieId = Number(id);
@@ -105,7 +104,6 @@ export default function MoviesDetails() {
       (item) => Number(item.id) === movieId
     );
 
-    // Small delay so loading screen can be seen
     const timer = setTimeout(() => {
       if (movie) {
         setShow({
@@ -119,7 +117,11 @@ export default function MoviesDetails() {
 
         if (availableDates.length > 0) {
           setSelectedDate(availableDates[0]);
+        } else {
+          setSelectedDate(null);
         }
+
+        setSelectedTime(null);
       } else {
         setShow(null);
       }
@@ -127,14 +129,11 @@ export default function MoviesDetails() {
       setLoading(false);
     }, 500);
 
-    // Cleanup timer
     return () => clearTimeout(timer);
   }, [id]);
 
   // ------------------------------------------------
-  // LOADING PAGE
-  // IMPORTANT:
-  // This must be OUTSIDE useEffect
+  // Loading
   // ------------------------------------------------
   if (loading) {
     return <Loading />;
@@ -147,7 +146,6 @@ export default function MoviesDetails() {
     return (
       <div className="min-h-screen bg-[#09090B] text-white flex items-center justify-center px-6">
         <div className="text-center">
-
           <div className="text-6xl mb-5">
             🎬
           </div>
@@ -161,6 +159,7 @@ export default function MoviesDetails() {
           </p>
 
           <button
+            type="button"
             onClick={() => navigate("/movies")}
             className="
               mt-6
@@ -179,7 +178,6 @@ export default function MoviesDetails() {
           >
             Browse Movies
           </button>
-
         </div>
       </div>
     );
@@ -190,30 +188,12 @@ export default function MoviesDetails() {
   // ------------------------------------------------
   const movie = show.movie;
 
-  const dates = Object.keys(
-    show.datetime || {}
-  );
+  const dates = Object.keys(show.datetime || {});
 
   const selectedShows =
-    selectedDate &&
-    show.datetime?.[selectedDate]
+    selectedDate && show.datetime?.[selectedDate]
       ? show.datetime[selectedDate]
       : [];
-
-  // ------------------------------------------------
-  // Book Ticket
-  // ------------------------------------------------
-  const handleBooking = (showTime) => {
-    if (!showTime?.showId) {
-      return;
-    }
-
-    setSelectedTime(showTime);
-
-    navigate(
-      `/seat-layout?movieId=${movie.id}&showId=${showTime.showId}`
-    );
-  };
 
   // ------------------------------------------------
   // Scroll To Booking
@@ -240,7 +220,7 @@ export default function MoviesDetails() {
           HERO SECTION
       ================================================== */}
 
-      <section className="relative min-h-[720px] overflow-hidden">
+      <section className="relative overflow-hidden">
 
         {/* Background */}
         <img
@@ -292,7 +272,6 @@ export default function MoviesDetails() {
             lg:px-16
             pt-32
             pb-20
-            min-h-[720px]
             flex
             items-end
           "
@@ -317,7 +296,6 @@ export default function MoviesDetails() {
                 alt={movie.title}
                 className="
                   w-full
-                  h-[410px]
                   object-cover
                   rounded-2xl
                   shadow-2xl
@@ -333,6 +311,7 @@ export default function MoviesDetails() {
 
               {/* Back */}
               <button
+                type="button"
                 onClick={() => navigate(-1)}
                 className="
                   flex
@@ -403,7 +382,6 @@ export default function MoviesDetails() {
 
                 {/* Rating */}
                 <div className="flex items-center gap-2">
-
                   <Star
                     className="
                       w-5
@@ -426,14 +404,12 @@ export default function MoviesDetails() {
                     ).toLocaleString()}
                     {" "}votes)
                   </span>
-
                 </div>
 
                 <span>•</span>
 
                 {/* Release */}
                 <div className="flex items-center gap-2">
-
                   <CalendarDays className="w-4 h-4" />
 
                   {movie.release_date
@@ -441,18 +417,15 @@ export default function MoviesDetails() {
                         movie.release_date
                       ).getFullYear()
                     : "N/A"}
-
                 </div>
 
                 <span>•</span>
 
                 {/* Runtime */}
                 <div className="flex items-center gap-2">
-
                   <Clock3 className="w-4 h-4" />
 
                   {timeFormat(movie.runtime)}
-
                 </div>
 
               </div>
@@ -512,6 +485,7 @@ export default function MoviesDetails() {
 
                 {/* Buy Tickets */}
                 <button
+                  type="button"
                   onClick={scrollToBooking}
                   className="
                     px-10
@@ -521,25 +495,19 @@ export default function MoviesDetails() {
                     text-white
                     rounded-md
                     cursor-pointer
-
                     bg-gradient-to-r
                     from-purple-600
                     via-pink-500
                     to-red-500
-
                     bg-[length:200%_200%]
                     animate-gradient
-
                     shadow-lg
                     shadow-purple-500/30
-
                     transition-all
                     duration-300
-
                     hover:scale-105
                     hover:shadow-xl
                     hover:shadow-pink-500/40
-
                     active:scale-95
                   "
                 >
@@ -574,10 +542,9 @@ export default function MoviesDetails() {
 
                 {/* Favorite */}
                 <button
+                  type="button"
                   onClick={() =>
-                    setIsFavorite(
-                      (prev) => !prev
-                    )
+                    setIsFavorite((prev) => !prev)
                   }
                   aria-label="Add to favorites"
                   className={`
@@ -606,11 +573,8 @@ export default function MoviesDetails() {
               </div>
 
             </div>
-
           </div>
-
         </div>
-
       </section>
 
       {/* =================================================
@@ -652,7 +616,6 @@ export default function MoviesDetails() {
             no-scrollbar
           "
         >
-
           {movie.casts?.slice(0, 9).map(
             (cast, index) => (
               <div
@@ -663,7 +626,6 @@ export default function MoviesDetails() {
                   group
                 "
               >
-
                 <img
                   src={cast.profile_path}
                   alt={cast.name}
@@ -690,13 +652,10 @@ export default function MoviesDetails() {
                 >
                   {cast.name}
                 </p>
-
               </div>
             )
           )}
-
         </div>
-
       </section>
 
       {/* =================================================
@@ -707,8 +666,8 @@ export default function MoviesDetails() {
         id="dateSelect"
         className="scroll-mt-20"
       >
-
         <DateSelect
+          movieId={movie.id}
           dates={dates}
           selectedDate={selectedDate}
           setSelectedDate={setSelectedDate}
@@ -717,10 +676,8 @@ export default function MoviesDetails() {
           setSelectedTime={setSelectedTime}
           formatDate={formatDate}
           formatTime={formatTime}
-          handleBooking={handleBooking}
           dateTime={show.datetime}
         />
-
       </section>
 
       {/* =================================================
@@ -757,7 +714,6 @@ export default function MoviesDetails() {
             gap-8
           "
         >
-
           {dummyShowsData
             .filter(
               (item) => item.id !== movie.id
@@ -769,13 +725,13 @@ export default function MoviesDetails() {
                 movie={item}
               />
             ))}
-
         </div>
 
         {/* Show More */}
         <div className="flex justify-center mt-20">
 
           <button
+            type="button"
             onClick={() => navigate("/movies")}
             className="
               px-10
@@ -798,10 +754,7 @@ export default function MoviesDetails() {
           </button>
 
         </div>
-
       </section>
-
     </div>
   );
 }
-
