@@ -81,9 +81,6 @@ export default function MoviesDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // ------------------------------------------------
-  // States
-  // ------------------------------------------------
   const [loading, setLoading] = useState(true);
   const [show, setShow] = useState(null);
 
@@ -117,17 +114,13 @@ export default function MoviesDetails() {
 
         if (availableDates.length > 0) {
           setSelectedDate(availableDates[0]);
-        } else {
-          setSelectedDate(null);
         }
-
-        setSelectedTime(null);
       } else {
         setShow(null);
       }
 
       setLoading(false);
-    }, 500);
+    }, 400);
 
     return () => clearTimeout(timer);
   }, [id]);
@@ -146,13 +139,14 @@ export default function MoviesDetails() {
     return (
       <div className="min-h-screen bg-[#09090B] text-white flex items-center justify-center px-6">
         <div className="text-center">
+
           <div className="text-6xl mb-5">
             🎬
           </div>
 
-          <p className="text-2xl font-semibold">
+          <h1 className="text-2xl font-semibold">
             Movie Not Found
-          </p>
+          </h1>
 
           <p className="text-gray-400 mt-2">
             The movie you are looking for does not exist.
@@ -165,38 +159,38 @@ export default function MoviesDetails() {
               mt-6
               px-7
               py-3
-              rounded-full
+              rounded-xl
               bg-gradient-to-r
               from-purple-600
               via-pink-500
               to-red-500
               hover:scale-105
-              transition-all
-              duration-300
+              transition
               font-semibold
             "
           >
             Browse Movies
           </button>
+
         </div>
       </div>
     );
   }
 
-  // ------------------------------------------------
-  // Movie Data
-  // ------------------------------------------------
   const movie = show.movie;
 
-  const dates = Object.keys(show.datetime || {});
+  const dates = Object.keys(
+    show.datetime || {}
+  );
 
   const selectedShows =
-    selectedDate && show.datetime?.[selectedDate]
+    selectedDate &&
+    show.datetime?.[selectedDate]
       ? show.datetime[selectedDate]
       : [];
 
   // ------------------------------------------------
-  // Scroll To Booking
+  // Scroll Booking
   // ------------------------------------------------
   const scrollToBooking = () => {
     const bookingSection =
@@ -217,9 +211,8 @@ export default function MoviesDetails() {
     <div className="min-h-screen bg-[#09090B] text-white">
 
       {/* =================================================
-          HERO SECTION
-      ================================================== */}
-
+          HERO
+      ================================================= */}
       <section className="relative overflow-hidden">
 
         {/* Background */}
@@ -260,7 +253,7 @@ export default function MoviesDetails() {
           "
         />
 
-        {/* Hero Content */}
+        {/* Content */}
         <div
           className="
             relative
@@ -306,7 +299,7 @@ export default function MoviesDetails() {
 
             </div>
 
-            {/* Movie Information */}
+            {/* Information */}
             <div className="max-w-4xl">
 
               {/* Back */}
@@ -337,7 +330,7 @@ export default function MoviesDetails() {
                   tracking-wider
                 "
               >
-                {movie.original_language || "EN"}
+                {movie.original_language || "ENGLISH"}
               </p>
 
               {/* Title */}
@@ -368,7 +361,7 @@ export default function MoviesDetails() {
                 </p>
               )}
 
-              {/* Rating / Release / Runtime */}
+              {/* Meta */}
               <div
                 className="
                   flex
@@ -382,6 +375,7 @@ export default function MoviesDetails() {
 
                 {/* Rating */}
                 <div className="flex items-center gap-2">
+
                   <Star
                     className="
                       w-5
@@ -404,12 +398,14 @@ export default function MoviesDetails() {
                     ).toLocaleString()}
                     {" "}votes)
                   </span>
+
                 </div>
 
                 <span>•</span>
 
                 {/* Release */}
                 <div className="flex items-center gap-2">
+
                   <CalendarDays className="w-4 h-4" />
 
                   {movie.release_date
@@ -417,28 +413,25 @@ export default function MoviesDetails() {
                         movie.release_date
                       ).getFullYear()
                     : "N/A"}
+
                 </div>
 
                 <span>•</span>
 
                 {/* Runtime */}
                 <div className="flex items-center gap-2">
+
                   <Clock3 className="w-4 h-4" />
 
                   {timeFormat(movie.runtime)}
+
                 </div>
 
               </div>
 
               {/* Genres */}
-              <div
-                className="
-                  flex
-                  flex-wrap
-                  gap-2
-                  mt-6
-                "
-              >
+              <div className="flex flex-wrap gap-2 mt-6">
+
                 {movie.genres?.map((genre) => (
                   <span
                     key={genre.id}
@@ -456,6 +449,7 @@ export default function MoviesDetails() {
                     {genre.name}
                   </span>
                 ))}
+
               </div>
 
               {/* Overview */}
@@ -493,21 +487,18 @@ export default function MoviesDetails() {
                     text-sm
                     font-semibold
                     text-white
-                    rounded-md
+                    rounded-xl
                     cursor-pointer
                     bg-gradient-to-r
                     from-purple-600
                     via-pink-500
                     to-red-500
-                    bg-[length:200%_200%]
-                    animate-gradient
                     shadow-lg
                     shadow-purple-500/30
                     transition-all
                     duration-300
                     hover:scale-105
                     hover:shadow-xl
-                    hover:shadow-pink-500/40
                     active:scale-95
                   "
                 >
@@ -552,7 +543,6 @@ export default function MoviesDetails() {
                     rounded-full
                     border
                     transition
-
                     ${
                       isFavorite
                         ? "bg-[#f84565] border-[#f84565]"
@@ -573,14 +563,16 @@ export default function MoviesDetails() {
               </div>
 
             </div>
+
           </div>
+
         </div>
+
       </section>
 
       {/* =================================================
-          CAST SECTION
-      ================================================== */}
-
+          CAST
+      ================================================= */}
       <section
         className="
           max-w-7xl
@@ -600,11 +592,13 @@ export default function MoviesDetails() {
             mb-7
           "
         >
+
           <p className="text-2xl font-semibold">
             Your Favorite Stars
           </p>
 
           <Users className="text-[#f84565]" />
+
         </div>
 
         <div
@@ -613,9 +607,10 @@ export default function MoviesDetails() {
             gap-6
             overflow-x-auto
             pb-5
-            no-scrollbar
+            scrollbar-hide
           "
         >
+
           {movie.casts?.slice(0, 9).map(
             (cast, index) => (
               <div
@@ -626,6 +621,7 @@ export default function MoviesDetails() {
                   group
                 "
               >
+
                 <img
                   src={cast.profile_path}
                   alt={cast.name}
@@ -652,20 +648,31 @@ export default function MoviesDetails() {
                 >
                   {cast.name}
                 </p>
+
               </div>
             )
           )}
+
         </div>
+
       </section>
 
       {/* =================================================
           DATE SELECT
-      ================================================== */}
-
+      ================================================= */}
       <section
         id="dateSelect"
-        className="scroll-mt-20"
+        className="
+          max-w-7xl
+          mx-auto
+          px-6
+          md:px-10
+          lg:px-16
+          py-10
+          scroll-mt-20
+        "
       >
+
         <DateSelect
           movieId={movie.id}
           dates={dates}
@@ -678,12 +685,12 @@ export default function MoviesDetails() {
           formatTime={formatTime}
           dateTime={show.datetime}
         />
+
       </section>
 
       {/* =================================================
           YOU MAY ALSO LIKE
-      ================================================== */}
-
+      ================================================= */}
       <section
         className="
           max-w-7xl
@@ -699,7 +706,7 @@ export default function MoviesDetails() {
           className="
             text-2xl
             font-semibold
-            mt-20
+            mt-12
             mb-8
           "
         >
@@ -714,6 +721,7 @@ export default function MoviesDetails() {
             gap-8
           "
         >
+
           {dummyShowsData
             .filter(
               (item) => item.id !== movie.id
@@ -725,9 +733,9 @@ export default function MoviesDetails() {
                 movie={item}
               />
             ))}
+
         </div>
 
-        {/* Show More */}
         <div className="flex justify-center mt-20">
 
           <button
@@ -739,22 +747,23 @@ export default function MoviesDetails() {
               text-sm
               font-semibold
               text-white
-              rounded-md
+              rounded-xl
               cursor-pointer
               bg-gradient-to-r
               from-purple-600
               via-pink-500
               to-red-500
               hover:scale-105
-              transition-all
-              duration-300
+              transition
             "
           >
             Show More
           </button>
 
         </div>
+
       </section>
+
     </div>
   );
 }

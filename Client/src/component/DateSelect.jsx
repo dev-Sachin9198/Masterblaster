@@ -8,7 +8,6 @@ import {
 import { useNavigate } from "react-router-dom";
 
 const DateSelect = ({
-  movieId,
   dates,
   selectedDate,
   setSelectedDate,
@@ -17,15 +16,15 @@ const DateSelect = ({
   setSelectedTime,
   formatDate,
   formatTime,
+  movieId,
 }) => {
   const navigate = useNavigate();
 
   // --------------------------------------------------
-  // SELECT SEATS
+  // Select Seats
   // --------------------------------------------------
   const handleSelectSeats = () => {
     if (!movieId) {
-      console.error("Movie ID is missing");
       return;
     }
 
@@ -37,29 +36,21 @@ const DateSelect = ({
       return;
     }
 
-    // ------------------------------------------------
-    // Navigate to Seat Layout
-    //
-    // Example:
-    // /Movies/123/2026-09-05?showId=show123
-    // ------------------------------------------------
     navigate(
-      `/Movies/${movieId}/${encodeURIComponent(
-        selectedDate
-      )}?showId=${encodeURIComponent(
-        selectedTime.showId
-      )}`
+      `/Movies/${movieId}/${selectedDate}?showId=${selectedTime.showId}`
     );
   };
 
   // --------------------------------------------------
-  // PREVIOUS DATE
+  // Previous Date
   // --------------------------------------------------
   const handlePreviousDate = () => {
-    const currentIndex = dates.indexOf(selectedDate);
+    const currentIndex =
+      dates.indexOf(selectedDate);
 
     if (currentIndex > 0) {
-      const previousDate = dates[currentIndex - 1];
+      const previousDate =
+        dates[currentIndex - 1];
 
       setSelectedDate(previousDate);
       setSelectedTime(null);
@@ -67,40 +58,68 @@ const DateSelect = ({
   };
 
   // --------------------------------------------------
-  // NEXT DATE
+  // Next Date
   // --------------------------------------------------
   const handleNextDate = () => {
-    const currentIndex = dates.indexOf(selectedDate);
+    const currentIndex =
+      dates.indexOf(selectedDate);
 
     if (
       currentIndex !== -1 &&
       currentIndex < dates.length - 1
     ) {
-      const nextDate = dates[currentIndex + 1];
+      const nextDate =
+        dates[currentIndex + 1];
 
       setSelectedDate(nextDate);
       setSelectedTime(null);
     }
   };
 
+  // --------------------------------------------------
+  // Date formatting
+  // --------------------------------------------------
+  const getDateParts = (date) => {
+    const parsed = new Date(date);
+
+    if (Number.isNaN(parsed.getTime())) {
+      return {
+        weekday: "---",
+        day: "--",
+        month: "---",
+      };
+    }
+
+    return {
+      weekday: parsed.toLocaleDateString(
+        "en-IN",
+        {
+          weekday: "short",
+        }
+      ),
+
+      day: parsed.toLocaleDateString(
+        "en-IN",
+        {
+          day: "2-digit",
+        }
+      ),
+
+      month: parsed.toLocaleDateString(
+        "en-IN",
+        {
+          month: "short",
+        }
+      ),
+    };
+  };
+
   return (
-    <section
-      className="
-        w-full
-        max-w-7xl
-        mx-auto
-        px-6
-        md:px-10
-        lg:px-16
-        mt-12
-        pb-10
-      "
-    >
+    <section className="w-full mt-8">
 
       {/* =================================================
           HEADING
-      ================================================== */}
-
+      ================================================= */}
       <div className="flex items-center gap-3 mb-6">
 
         <CalendarDays
@@ -112,6 +131,7 @@ const DateSelect = ({
         />
 
         <div>
+
           <h2
             className="
               text-xl
@@ -123,202 +143,195 @@ const DateSelect = ({
             Select Date & Time
           </h2>
 
-          <p
-            className="
-              text-sm
-              text-slate-400
-              mt-1
-            "
-          >
+          <p className="text-sm text-slate-400 mt-1">
             Choose your preferred date and showtime
           </p>
+
         </div>
 
       </div>
 
       {/* =================================================
           DATE SELECTOR
-      ================================================== */}
+      ================================================= */}
+      <div className="relative">
 
-      {dates?.length > 0 ? (
-        <div className="relative">
+        {/* LEFT */}
+        <button
+          type="button"
+          onClick={handlePreviousDate}
+          disabled={
+            !dates?.length ||
+            dates.indexOf(selectedDate) <= 0
+          }
+          className="
+            absolute
+            left-0
+            top-1/2
+            -translate-y-1/2
+            z-10
+            w-10
+            h-10
+            rounded-full
+            bg-slate-800
+            border
+            border-white/10
+            text-white
+            flex
+            items-center
+            justify-center
+            hover:bg-slate-700
+            disabled:opacity-30
+            disabled:cursor-not-allowed
+            transition
+          "
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
 
-          {/* LEFT */}
-          <button
-            type="button"
-            onClick={handlePreviousDate}
-            disabled={
-              dates.indexOf(selectedDate) <= 0
-            }
-            className="
-              absolute
-              left-0
-              top-1/2
-              -translate-y-1/2
-              z-10
-              w-10
-              h-10
-              rounded-full
-              bg-slate-800
-              border
-              border-white/10
-              text-white
-              flex
-              items-center
-              justify-center
-              hover:bg-slate-700
-              disabled:opacity-30
-              disabled:cursor-not-allowed
-              transition
-            "
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
+        {/* DATES */}
+        <div
+          className="
+            flex
+            gap-3
+            overflow-x-auto
+            px-14
+            pb-3
+            scrollbar-hide
+          "
+        >
 
-          {/* DATES */}
-          <div
-            className="
-              flex
-              gap-3
-              overflow-x-auto
-              px-14
-              pb-3
-              scrollbar-hide
-            "
-          >
-            {dates.map((date) => {
+          {dates?.map((date) => {
 
-              const isSelected =
-                selectedDate === date;
+            const isSelected =
+              selectedDate === date;
 
-              return (
-                <button
-                  type="button"
-                  key={date}
-                  onClick={() => {
-                    setSelectedDate(date);
-                    setSelectedTime(null);
-                  }}
-                  className={`
-                    min-w-[110px]
-                    sm:min-w-[125px]
-                    px-5
-                    py-4
-                    rounded-2xl
-                    border
-                    transition-all
-                    duration-300
+            const parts =
+              getDateParts(date);
 
-                    ${
-                      isSelected
-                        ? `
-                          bg-indigo-600
-                          border-indigo-400
-                          text-white
-                          shadow-lg
-                          shadow-indigo-500/20
-                        `
-                        : `
-                          bg-white/5
-                          border-white/10
-                          text-slate-300
-                          hover:bg-white/10
-                        `
-                    }
-                  `}
+            return (
+              <button
+                type="button"
+                key={date}
+                onClick={() => {
+                  setSelectedDate(date);
+                  setSelectedTime(null);
+                }}
+                className={`
+                  min-w-[110px]
+                  sm:min-w-[125px]
+                  px-5
+                  py-4
+                  rounded-2xl
+                  border
+                  transition-all
+                  duration-300
+                  ${
+                    isSelected
+                      ? `
+                        bg-indigo-600
+                        border-indigo-400
+                        text-white
+                        shadow-lg
+                        shadow-indigo-500/20
+                      `
+                      : `
+                        bg-white/5
+                        border-white/10
+                        text-slate-300
+                        hover:bg-white/10
+                      `
+                  }
+                `}
+              >
+
+                <p
+                  className="
+                    text-xs
+                    uppercase
+                    tracking-wider
+                    opacity-70
+                  "
                 >
+                  {parts.weekday}
+                </p>
 
-                  <p
-                    className="
-                      text-xs
-                      uppercase
-                      tracking-wider
-                      opacity-70
-                    "
-                  >
-                    {formatDate
-                      ? formatDate(date)
-                      : date}
-                  </p>
+                <p
+                  className="
+                    text-lg
+                    font-semibold
+                    mt-1
+                  "
+                >
+                  {parts.day}
+                </p>
 
-                  <p
-                    className="
-                      text-lg
-                      font-semibold
-                      mt-1
-                    "
-                  >
-                    {new Date(date).getDate()}
-                  </p>
+                <p
+                  className="
+                    text-xs
+                    mt-1
+                    opacity-70
+                  "
+                >
+                  {parts.month}
+                </p>
 
-                  <p
-                    className="
-                      text-xs
-                      mt-1
-                      opacity-70
-                    "
-                  >
-                    {new Date(date).toLocaleDateString(
-                      "en-IN",
-                      {
-                        month: "short",
-                      }
-                    )}
-                  </p>
-
-                </button>
-              );
-            })}
-          </div>
-
-          {/* RIGHT */}
-          <button
-            type="button"
-            onClick={handleNextDate}
-            disabled={
-              dates.indexOf(selectedDate) ===
-              dates.length - 1
-            }
-            className="
-              absolute
-              right-0
-              top-1/2
-              -translate-y-1/2
-              z-10
-              w-10
-              h-10
-              rounded-full
-              bg-slate-800
-              border
-              border-white/10
-              text-white
-              flex
-              items-center
-              justify-center
-              hover:bg-slate-700
-              disabled:opacity-30
-              disabled:cursor-not-allowed
-              transition
-            "
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
+              </button>
+            );
+          })}
 
         </div>
-      ) : (
-        <p className="text-slate-400">
-          No dates available.
-        </p>
-      )}
+
+        {/* RIGHT */}
+        <button
+          type="button"
+          onClick={handleNextDate}
+          disabled={
+            !dates?.length ||
+            dates.indexOf(selectedDate) ===
+              dates.length - 1
+          }
+          className="
+            absolute
+            right-0
+            top-1/2
+            -translate-y-1/2
+            z-10
+            w-10
+            h-10
+            rounded-full
+            bg-slate-800
+            border
+            border-white/10
+            text-white
+            flex
+            items-center
+            justify-center
+            hover:bg-slate-700
+            disabled:opacity-30
+            disabled:cursor-not-allowed
+            transition
+          "
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+
+      </div>
 
       {/* =================================================
           SHOW TIMES
-      ================================================== */}
-
+      ================================================= */}
       {selectedDate && (
         <div className="mt-8">
 
-          <div className="flex items-center gap-2 mb-5">
+          <div
+            className="
+              flex
+              items-center
+              gap-2
+              mb-5
+            "
+          >
 
             <Clock3
               className="
@@ -343,6 +356,7 @@ const DateSelect = ({
           <div className="flex flex-wrap gap-3">
 
             {selectedShows?.length > 0 ? (
+
               selectedShows.map((showTime) => {
 
                 const isSelected =
@@ -365,7 +379,6 @@ const DateSelect = ({
                       font-medium
                       transition-all
                       duration-300
-
                       ${
                         isSelected
                           ? `
@@ -391,20 +404,23 @@ const DateSelect = ({
                   </button>
                 );
               })
+
             ) : (
+
               <p className="text-slate-400 text-sm">
                 No shows available for this date.
               </p>
+
             )}
 
           </div>
+
         </div>
       )}
 
       {/* =================================================
-          SELECTED SHOW / SELECT SEATS
-      ================================================== */}
-
+          SELECTED SHOW
+      ================================================= */}
       {selectedTime && (
         <div
           className="
@@ -423,7 +439,7 @@ const DateSelect = ({
           "
         >
 
-          {/* SELECTED SHOW */}
+          {/* Selected */}
           <div className="w-full sm:w-auto">
 
             <p
@@ -449,49 +465,19 @@ const DateSelect = ({
                 : selectedTime.time}
             </p>
 
-            {selectedTime.typename && (
-              <p
-                className="
-                  text-xs
-                  text-slate-500
-                  mt-1
-                "
-              >
-                {selectedTime.typename}
-              </p>
-            )}
-
-          </div>
-
-          {/* DATE */}
-          <div className="hidden sm:block">
-
             <p
               className="
                 text-xs
-                text-slate-400
-                uppercase
-                tracking-wider
-              "
-            >
-              Date
-            </p>
-
-            <p
-              className="
-                text-white
-                font-semibold
+                text-slate-500
                 mt-1
               "
             >
-              {formatDate
-                ? formatDate(selectedDate)
-                : selectedDate}
+              Show ID: {selectedTime.showId}
             </p>
 
           </div>
 
-          {/* SELECT SEATS */}
+          {/* Select Seats */}
           <button
             type="button"
             onClick={handleSelectSeats}

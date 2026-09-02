@@ -10,7 +10,7 @@ import {
   Check,
   Clock3,
   MapPin,
-  Ticket,
+  Armchair,
 } from "lucide-react";
 
 import toast from "react-hot-toast";
@@ -18,35 +18,44 @@ import toast from "react-hot-toast";
 import {
   dummyShowsData,
   dummyDateTimeData,
+  dummyDashboardData,
+  dummyBookingData,
 } from "../assets/assets";
 
+// ==================================================
+// Seat Layout
+// ==================================================
 const SeatLayout = () => {
   const navigate = useNavigate();
 
   const { id, date } = useParams();
 
-  const [searchParams] = useSearchParams();
+  const [searchParams] =
+    useSearchParams();
 
-  const showId = searchParams.get("showId");
+  const showId =
+    searchParams.get("showId");
 
-  const [selectedSeats, setSelectedSeats] = useState([]);
+  const [selectedSeats, setSelectedSeats] =
+    useState([]);
 
   // ==================================================
   // MOVIE
   // ==================================================
-
   const movie = useMemo(() => {
+
     return dummyShowsData?.find(
       (item) =>
         String(item.id) === String(id)
     );
+
   }, [id]);
 
   // ==================================================
   // SHOW
   // ==================================================
-
   const show = useMemo(() => {
+
     if (!date || !showId) {
       return null;
     }
@@ -65,12 +74,12 @@ const SeatLayout = () => {
           String(showId)
       ) || null
     );
+
   }, [date, showId]);
 
   // ==================================================
   // SEAT CONFIG
   // ==================================================
-
   const rows = [
     "A",
     "B",
@@ -87,55 +96,120 @@ const SeatLayout = () => {
   // ==================================================
   // OCCUPIED SEATS
   // ==================================================
+  const occupiedSeats = useMemo(() => {
 
-  const occupiedSeats = [
-    "A3",
-    "A4",
-    "B6",
-    "B7",
-    "C2",
-    "C3",
-    "D8",
-    "E5",
-    "E6",
-    "F1",
-  ];
+    const seats = new Set();
+
+    // ------------------------------------------------
+    // Dashboard active show
+    // ------------------------------------------------
+    const activeShow =
+      dummyDashboardData?.activeShows?.find(
+        (item) =>
+          String(item._id) ===
+          String(showId)
+      );
+
+    if (activeShow?.occupiedSeats) {
+
+      Object.keys(
+        activeShow.occupiedSeats
+      ).forEach((seat) => {
+        seats.add(seat);
+      });
+
+    }
+
+    // ------------------------------------------------
+    // Booking data
+    // ------------------------------------------------
+    dummyBookingData?.forEach(
+      (booking) => {
+
+        if (
+          String(booking?.show?._id) ===
+          String(showId)
+        ) {
+
+          booking.bookedSeats?.forEach(
+            (seat) => {
+              seats.add(seat);
+            }
+          );
+
+        }
+
+      }
+    );
+
+    // ------------------------------------------------
+    // Demo fallback
+    // ------------------------------------------------
+    if (seats.size === 0) {
+
+      [
+        "A3",
+        "A4",
+        "B6",
+        "B7",
+        "C2",
+        "C3",
+        "D8",
+        "E5",
+        "E6",
+        "F1",
+      ].forEach((seat) => {
+        seats.add(seat);
+      });
+
+    }
+
+    return Array.from(seats);
+
+  }, [showId]);
 
   // ==================================================
-  // TOGGLE SEAT
+  // SELECT SEAT
   // ==================================================
+  const handleSeatClick = (
+    seatNumber
+  ) => {
 
-  const handleSeatClick = (seatNumber) => {
     if (
       occupiedSeats.includes(
         seatNumber
       )
     ) {
+      toast.error(
+        `${seatNumber} is already occupied`
+      );
+
       return;
     }
 
     setSelectedSeats((prev) => {
 
-      // Remove if already selected
       if (prev.includes(seatNumber)) {
+
         return prev.filter(
           (seat) =>
             seat !== seatNumber
         );
+
       }
 
-      // Add seat
       return [
         ...prev,
         seatNumber,
       ];
+
     });
+
   };
 
   // ==================================================
-  // TOTAL PRICE
+  // TOTAL
   // ==================================================
-
   const totalPrice =
     selectedSeats.length *
     ticketPrice;
@@ -143,75 +217,70 @@ const SeatLayout = () => {
   // ==================================================
   // CHECKOUT
   // ==================================================
+  const handleProceedToCheckout =
+    () => {
 
-  const handleProceedToCheckout = () => {
+      // No seat
+      if (
+        selectedSeats.length === 0
+      ) {
 
-    // No seats
-    if (selectedSeats.length === 0) {
-      toast.error(
-        "Please select at least one seat."
+        toast.error(
+          "Please select at least one seat."
+        );
+
+        return;
+      }
+
+      // Login
+      const token =
+        localStorage.getItem(
+          "token"
+        );
+
+      if (!token) {
+
+        toast.error(
+          "Please login first to proceed to checkout."
+        );
+
+        return;
+      }
+
+      // Invalid movie
+      if (!movie?.id) {
+
+        toast.error(
+          "Movie information is missing."
+        );
+
+        return;
+      }
+
+      // Invalid show
+      if (!show?.showId) {
+
+        toast.error(
+          "Show information is missing."
+        );
+
+        return;
+      }
+
+      // Checkout
+      navigate(
+        `/checkout?movieId=${movie.id}&showId=${show.showId}&date=${date}&seats=${selectedSeats.join(
+          ","
+        )}&amount=${totalPrice}`
       );
 
-      return;
-    }
-
-    // Login check
-    const token =
-      localStorage.getItem("token");
-
-    if (!token) {
-      toast.error(
-        "Please login first to proceed to checkout."
-      );
-
-      return;
-    }
-
-    // Validate movie
-    if (!movie) {
-      toast.error(
-        "Movie information not found."
-      );
-
-      return;
-    }
-
-    // Validate show
-    if (!show) {
-      toast.error(
-        "Show information not found."
-      );
-
-      return;
-    }
-
-    // ------------------------------------------------
-    // Navigate to Checkout
-    // ------------------------------------------------
-
-    const checkoutUrl =
-      `/checkout` +
-      `?movieId=${encodeURIComponent(
-        movie.id
-      )}` +
-      `&showId=${encodeURIComponent(
-        show.showId
-      )}` +
-      `&date=${encodeURIComponent(
-        date
-      )}` +
-      `&seats=${encodeURIComponent(
-        selectedSeats.join(",")
-      )}`;
-
-    navigate(checkoutUrl);
-  };
+    };
 
   // ==================================================
-  // INVALID SHOW
+  // INVALID
   // ==================================================
-
   if (!movie || !show) {
+
     return (
       <div
         className="
@@ -224,30 +293,11 @@ const SeatLayout = () => {
           px-5
         "
       >
+
         <div className="text-center">
 
-          <div
-            className="
-              w-20
-              h-20
-              mx-auto
-              rounded-full
-              bg-white/5
-              border
-              border-white/10
-              flex
-              items-center
-              justify-center
-              mb-6
-            "
-          >
-            <Ticket
-              className="
-                w-10
-                h-10
-                text-indigo-400
-              "
-            />
+          <div className="text-5xl mb-5">
+            🎬
           </div>
 
           <h1
@@ -260,13 +310,9 @@ const SeatLayout = () => {
             Show Not Found
           </h1>
 
-          <p
-            className="
-              text-slate-400
-              mb-6
-            "
-          >
-            The selected movie show could not be found.
+          <p className="text-slate-400 mb-6">
+            The selected movie show could not
+            be found.
           </p>
 
           <button
@@ -288,6 +334,7 @@ const SeatLayout = () => {
           </button>
 
         </div>
+
       </div>
     );
   }
@@ -295,7 +342,6 @@ const SeatLayout = () => {
   // ==================================================
   // RETURN
   // ==================================================
-
   return (
     <div
       className="
@@ -303,14 +349,13 @@ const SeatLayout = () => {
         bg-[#020617]
         text-white
         pt-28
-        pb-32
+        pb-36
       "
     >
 
       {/* =================================================
           HEADER
-      ================================================== */}
-
+      ================================================= */}
       <div
         className="
           max-w-7xl
@@ -324,7 +369,9 @@ const SeatLayout = () => {
         {/* Back */}
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={() =>
+            navigate(-1)
+          }
           className="
             flex
             items-center
@@ -336,7 +383,6 @@ const SeatLayout = () => {
           "
         >
           <ArrowLeft className="w-5 h-5" />
-
           <span>Back</span>
         </button>
 
@@ -359,15 +405,33 @@ const SeatLayout = () => {
 
           <div>
 
-            <h1
+            <div
               className="
-                text-2xl
-                sm:text-3xl
-                font-bold
+                flex
+                items-center
+                gap-3
               "
             >
-              {movie.title}
-            </h1>
+
+              <Armchair
+                className="
+                  w-6
+                  h-6
+                  text-indigo-400
+                "
+              />
+
+              <h1
+                className="
+                  text-2xl
+                  sm:text-3xl
+                  font-bold
+                "
+              >
+                {movie.title}
+              </h1>
+
+            </div>
 
             <div
               className="
@@ -390,7 +454,16 @@ const SeatLayout = () => {
               >
                 <Clock3 className="w-4 h-4" />
 
-                {show.time}
+                {new Date(
+                  show.time
+                ).toLocaleTimeString(
+                  "en-IN",
+                  {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true,
+                  }
+                )}
               </span>
 
               <span
@@ -402,8 +475,7 @@ const SeatLayout = () => {
               >
                 <MapPin className="w-4 h-4" />
 
-                {show.typename ||
-                  "Cinema Hall"}
+                Cinema Hall
               </span>
 
               <span>
@@ -414,6 +486,7 @@ const SeatLayout = () => {
 
           </div>
 
+          {/* Price */}
           <div
             className="
               text-left
@@ -421,12 +494,7 @@ const SeatLayout = () => {
             "
           >
 
-            <p
-              className="
-                text-sm
-                text-slate-400
-              "
-            >
+            <p className="text-sm text-slate-400">
               Ticket Price
             </p>
 
@@ -443,12 +511,12 @@ const SeatLayout = () => {
           </div>
 
         </div>
+
       </div>
 
       {/* =================================================
           SCREEN
-      ================================================== */}
-
+      ================================================= */}
       <div
         className="
           max-w-5xl
@@ -465,6 +533,7 @@ const SeatLayout = () => {
               text-sm
               text-slate-400
               mb-4
+              tracking-[0.3em]
             "
           >
             SCREEN
@@ -500,8 +569,7 @@ const SeatLayout = () => {
 
       {/* =================================================
           SEAT LAYOUT
-      ================================================== */}
-
+      ================================================= */}
       <div
         className="
           max-w-5xl
@@ -526,7 +594,7 @@ const SeatLayout = () => {
               "
             >
 
-              {/* Left Row */}
+              {/* Left row */}
               <div
                 className="
                   w-7
@@ -554,7 +622,8 @@ const SeatLayout = () => {
 
                 {Array.from(
                   {
-                    length: seatsPerRow,
+                    length:
+                      seatsPerRow,
                   },
                   (_, index) => {
 
@@ -624,6 +693,7 @@ const SeatLayout = () => {
                           }
                         `}
                       >
+
                         {isSelected ? (
                           <Check
                             className="
@@ -635,6 +705,7 @@ const SeatLayout = () => {
                         ) : (
                           index + 1
                         )}
+
                       </button>
                     );
                   }
@@ -642,7 +713,7 @@ const SeatLayout = () => {
 
               </div>
 
-              {/* Right Row */}
+              {/* Right row */}
               <div
                 className="
                   w-7
@@ -658,14 +729,14 @@ const SeatLayout = () => {
               </div>
 
             </div>
+
           ))}
 
         </div>
 
         {/* =================================================
             LEGEND
-        ================================================== */}
-
+        ================================================= */}
         <div
           className="
             flex
@@ -679,13 +750,9 @@ const SeatLayout = () => {
           "
         >
 
-          <div
-            className="
-              flex
-              items-center
-              gap-2
-            "
-          >
+          {/* Available */}
+          <div className="flex items-center gap-2">
+
             <span
               className="
                 w-5
@@ -697,16 +764,15 @@ const SeatLayout = () => {
               "
             />
 
-            <span>Available</span>
+            <span>
+              Available
+            </span>
+
           </div>
 
-          <div
-            className="
-              flex
-              items-center
-              gap-2
-            "
-          >
+          {/* Selected */}
+          <div className="flex items-center gap-2">
+
             <span
               className="
                 w-5
@@ -718,16 +784,15 @@ const SeatLayout = () => {
               "
             />
 
-            <span>Selected</span>
+            <span>
+              Selected
+            </span>
+
           </div>
 
-          <div
-            className="
-              flex
-              items-center
-              gap-2
-            "
-          >
+          {/* Occupied */}
+          <div className="flex items-center gap-2">
+
             <span
               className="
                 w-5
@@ -739,16 +804,19 @@ const SeatLayout = () => {
               "
             />
 
-            <span>Occupied</span>
+            <span>
+              Occupied
+            </span>
+
           </div>
 
         </div>
+
       </div>
 
       {/* =================================================
-          BOTTOM BOOKING BAR
-      ================================================== */}
-
+          BOTTOM BAR
+      ================================================= */}
       <div
         className="
           fixed
@@ -780,13 +848,12 @@ const SeatLayout = () => {
           "
         >
 
-          {/* Selected Seats */}
+          {/* Seats */}
           <div
             className="
               text-center
               sm:text-left
-              w-full
-              sm:w-auto
+              max-w-md
             "
           >
 
@@ -816,39 +883,23 @@ const SeatLayout = () => {
 
           </div>
 
-          {/* Number of Seats */}
+          {/* Count */}
           <div className="text-center">
 
-            <p
-              className="
-                text-xs
-                text-slate-500
-              "
-            >
-              Seats
+            <p className="text-xs text-slate-500">
+              Tickets
             </p>
 
-            <p
-              className="
-                text-xl
-                font-bold
-                text-white
-              "
-            >
+            <p className="text-xl font-bold">
               {selectedSeats.length}
             </p>
 
           </div>
 
-          {/* Price */}
+          {/* Amount */}
           <div className="text-center">
 
-            <p
-              className="
-                text-xs
-                text-slate-500
-              "
-            >
+            <p className="text-xs text-slate-500">
               Total Amount
             </p>
 
@@ -864,7 +915,7 @@ const SeatLayout = () => {
 
           </div>
 
-          {/* Proceed */}
+          {/* Checkout */}
           <button
             type="button"
             onClick={
@@ -893,6 +944,7 @@ const SeatLayout = () => {
           </button>
 
         </div>
+
       </div>
 
     </div>
