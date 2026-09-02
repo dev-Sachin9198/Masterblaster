@@ -8,7 +8,6 @@ import {
   Heart,
   PlayCircle,
   Star,
-  Ticket,
   Users,
 } from "lucide-react";
 
@@ -17,28 +16,37 @@ import {
   dummyDateTimeData,
 } from "../assets/assets";
 
-// DateSelect component
 import DateSelect from "../component/DateSelect";
+import MovieCard from "../component/MovieCard";
+import Loading from "../component/Loading";
 
-
-// -----------------------------
+// --------------------------------------------------
 // Format Runtime
-// -----------------------------
+// --------------------------------------------------
 const timeFormat = (minutes) => {
   if (!minutes) return "N/A";
 
   const hours = Math.floor(minutes / 60);
   const mins = minutes % 60;
 
+  if (hours === 0) {
+    return `${mins}m`;
+  }
+
   return `${hours}h ${mins}m`;
 };
 
-
-// -----------------------------
+// --------------------------------------------------
 // Format Date
-// -----------------------------
+// --------------------------------------------------
 const formatDate = (dateString) => {
+  if (!dateString) return "N/A";
+
   const date = new Date(dateString);
+
+  if (Number.isNaN(date.getTime())) {
+    return "N/A";
+  }
 
   return date.toLocaleDateString("en-IN", {
     weekday: "short",
@@ -47,12 +55,17 @@ const formatDate = (dateString) => {
   });
 };
 
-
-// -----------------------------
+// --------------------------------------------------
 // Format Time
-// -----------------------------
+// --------------------------------------------------
 const formatTime = (dateString) => {
+  if (!dateString) return "N/A";
+
   const date = new Date(dateString);
+
+  if (Number.isNaN(date.getTime())) {
+    return "N/A";
+  }
 
   return date.toLocaleTimeString("en-IN", {
     hour: "2-digit",
@@ -61,11 +74,17 @@ const formatTime = (dateString) => {
   });
 };
 
-
+// ==================================================
+// Movies Details
+// ==================================================
 export default function MoviesDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
 
+  // ------------------------------------------------
+  // States
+  // ------------------------------------------------
+  const [loading, setLoading] = useState(true);
   const [show, setShow] = useState(null);
 
   const [selectedDate, setSelectedDate] = useState(null);
@@ -73,80 +92,122 @@ export default function MoviesDetails() {
 
   const [isFavorite, setIsFavorite] = useState(false);
 
-
-  // -----------------------------
+  // ------------------------------------------------
   // Get Movie
-  // -----------------------------
+  // ------------------------------------------------
   useEffect(() => {
+    // Start loading
+    setLoading(true);
+
+    const movieId = Number(id);
+
     const movie = dummyShowsData.find(
-      (movie) => movie.id === parseInt(id)
+      (item) => Number(item.id) === movieId
     );
 
-    if (movie) {
-      setShow({
-        movie,
-        datetime: dummyDateTimeData,
-      });
+    // Small delay so loading screen can be seen
+    const timer = setTimeout(() => {
+      if (movie) {
+        setShow({
+          movie,
+          datetime: dummyDateTimeData,
+        });
 
-      const firstDate = Object.keys(dummyDateTimeData)[0];
+        const availableDates = Object.keys(
+          dummyDateTimeData || {}
+        );
 
-      setSelectedDate(firstDate);
-    } else {
-      setShow(null);
-    }
+        if (availableDates.length > 0) {
+          setSelectedDate(availableDates[0]);
+        }
+      } else {
+        setShow(null);
+      }
+
+      setLoading(false);
+    }, 500);
+
+    // Cleanup timer
+    return () => clearTimeout(timer);
   }, [id]);
 
+  // ------------------------------------------------
+  // LOADING PAGE
+  // IMPORTANT:
+  // This must be OUTSIDE useEffect
+  // ------------------------------------------------
+  if (loading) {
+    return <Loading />;
+  }
 
-  // -----------------------------
-  // Loading / Not Found
-  // -----------------------------
+  // ------------------------------------------------
+  // Movie Not Found
+  // ------------------------------------------------
   if (!show) {
     return (
-      <div className="min-h-screen bg-[#09090B] text-white flex items-center justify-center">
-
+      <div className="min-h-screen bg-[#09090B] text-white flex items-center justify-center px-6">
         <div className="text-center">
 
-          <p className="text-xl font-semibold">
-            Movie not found
+          <div className="text-6xl mb-5">
+            🎬
+          </div>
+
+          <p className="text-2xl font-semibold">
+            Movie Not Found
+          </p>
+
+          <p className="text-gray-400 mt-2">
+            The movie you are looking for does not exist.
           </p>
 
           <button
             onClick={() => navigate("/movies")}
             className="
-              mt-5
-              px-6
+              mt-6
+              px-7
               py-3
               rounded-full
-              bg-[#f84565]
-              hover:bg-[#d63854]
-              transition
+              bg-gradient-to-r
+              from-purple-600
+              via-pink-500
+              to-red-500
+              hover:scale-105
+              transition-all
+              duration-300
+              font-semibold
             "
           >
             Browse Movies
           </button>
 
         </div>
-
       </div>
     );
   }
 
-
+  // ------------------------------------------------
+  // Movie Data
+  // ------------------------------------------------
   const movie = show.movie;
 
-  const dates = Object.keys(show.datetime);
-
+  const dates = Object.keys(
+    show.datetime || {}
+  );
 
   const selectedShows =
-    selectedDate && show.datetime[selectedDate]
+    selectedDate &&
+    show.datetime?.[selectedDate]
       ? show.datetime[selectedDate]
       : [];
 
-
-  // -----------------------------
+  // ------------------------------------------------
   // Book Ticket
-  // -----------------------------
+  // ------------------------------------------------
   const handleBooking = (showTime) => {
+    if (!showTime?.showId) {
+      return;
+    }
+
     setSelectedTime(showTime);
 
     navigate(
@@ -154,32 +215,34 @@ export default function MoviesDetails() {
     );
   };
 
-
-  // -----------------------------
-  // Scroll Booking
-  // -----------------------------
+  // ------------------------------------------------
+  // Scroll To Booking
+  // ------------------------------------------------
   const scrollToBooking = () => {
-    document
-      .getElementById("booking")
-      ?.scrollIntoView({
+    const bookingSection =
+      document.getElementById("dateSelect");
+
+    if (bookingSection) {
+      bookingSection.scrollIntoView({
         behavior: "smooth",
+        block: "start",
       });
+    }
   };
 
-
+  // ==================================================
+  // RETURN
+  // ==================================================
   return (
     <div className="min-h-screen bg-[#09090B] text-white">
 
-
-      {/* =====================================================
+      {/* =================================================
           HERO SECTION
-      ====================================================== */}
+      ================================================== */}
 
       <section className="relative min-h-[720px] overflow-hidden">
 
-
         {/* Background */}
-
         <img
           src={movie.backdrop_path}
           alt={movie.title}
@@ -194,9 +257,7 @@ export default function MoviesDetails() {
           "
         />
 
-
-        {/* Dark Overlay */}
-
+        {/* Overlay */}
         <div
           className="
             absolute
@@ -207,7 +268,6 @@ export default function MoviesDetails() {
             to-[#09090B]/30
           "
         />
-
 
         <div
           className="
@@ -220,9 +280,7 @@ export default function MoviesDetails() {
           "
         />
 
-
-        {/* Content */}
-
+        {/* Hero Content */}
         <div
           className="
             relative
@@ -240,7 +298,6 @@ export default function MoviesDetails() {
           "
         >
 
-
           <div
             className="
               grid
@@ -252,9 +309,7 @@ export default function MoviesDetails() {
             "
           >
 
-
             {/* Poster */}
-
             <div className="hidden md:block">
 
               <img
@@ -273,14 +328,10 @@ export default function MoviesDetails() {
 
             </div>
 
-
             {/* Movie Information */}
-
             <div className="max-w-4xl">
 
-
               {/* Back */}
-
               <button
                 onClick={() => navigate(-1)}
                 className="
@@ -294,26 +345,23 @@ export default function MoviesDetails() {
                 "
               >
                 <ArrowLeft className="w-5 h-5" />
-
                 Back
               </button>
 
-
               {/* Language */}
-
-              <p className="
-                uppercase
-                text-[#f84565]
-                text-sm
-                font-semibold
-                tracking-wider
-              ">
+              <p
+                className="
+                  uppercase
+                  text-[#f84565]
+                  text-sm
+                  font-semibold
+                  tracking-wider
+                "
+              >
                 {movie.original_language || "EN"}
               </p>
 
-
               {/* Title */}
-
               <h1
                 className="
                   text-4xl
@@ -327,23 +375,21 @@ export default function MoviesDetails() {
                 {movie.title}
               </h1>
 
-
               {/* Tagline */}
-
               {movie.tagline && (
-                <p className="
-                  text-gray-300
-                  italic
-                  mt-4
-                  text-lg
-                ">
+                <p
+                  className="
+                    text-gray-300
+                    italic
+                    mt-4
+                    text-lg
+                  "
+                >
                   "{movie.tagline}"
                 </p>
               )}
 
-
-              {/* Rating / Date / Runtime */}
-
+              {/* Rating / Release / Runtime */}
               <div
                 className="
                   flex
@@ -356,7 +402,6 @@ export default function MoviesDetails() {
               >
 
                 {/* Rating */}
-
                 <div className="flex items-center gap-2">
 
                   <Star
@@ -369,37 +414,39 @@ export default function MoviesDetails() {
                   />
 
                   <span className="font-semibold text-white">
-                    {movie.vote_average.toFixed(1)}
+                    {Number(
+                      movie.vote_average || 0
+                    ).toFixed(1)}
                   </span>
 
                   <span className="text-sm">
-                    ({movie.vote_count.toLocaleString()} votes)
+                    (
+                    {Number(
+                      movie.vote_count || 0
+                    ).toLocaleString()}
+                    {" "}votes)
                   </span>
 
                 </div>
 
-
                 <span>•</span>
 
-
                 {/* Release */}
-
                 <div className="flex items-center gap-2">
 
                   <CalendarDays className="w-4 h-4" />
 
-                  {new Date(
-                    movie.release_date
-                  ).getFullYear()}
+                  {movie.release_date
+                    ? new Date(
+                        movie.release_date
+                      ).getFullYear()
+                    : "N/A"}
 
                 </div>
 
-
                 <span>•</span>
 
-
                 {/* Runtime */}
-
                 <div className="flex items-center gap-2">
 
                   <Clock3 className="w-4 h-4" />
@@ -410,9 +457,7 @@ export default function MoviesDetails() {
 
               </div>
 
-
               {/* Genres */}
-
               <div
                 className="
                   flex
@@ -421,8 +466,7 @@ export default function MoviesDetails() {
                   mt-6
                 "
               >
-
-                {movie.genres.map((genre) => (
+                {movie.genres?.map((genre) => (
                   <span
                     key={genre.id}
                     className="
@@ -439,12 +483,9 @@ export default function MoviesDetails() {
                     {genre.name}
                   </span>
                 ))}
-
               </div>
 
-
               {/* Overview */}
-
               <p
                 className="
                   mt-7
@@ -455,12 +496,11 @@ export default function MoviesDetails() {
                   md:text-base
                 "
               >
-                {movie.overview}
+                {movie.overview ||
+                  "No movie description available."}
               </p>
 
-
               {/* Buttons */}
-
               <div
                 className="
                   flex
@@ -470,43 +510,43 @@ export default function MoviesDetails() {
                 "
               >
 
-                {/* Book */}
+                {/* Buy Tickets */}
+                <button
+                  onClick={scrollToBooking}
+                  className="
+                    px-10
+                    py-3
+                    text-sm
+                    font-semibold
+                    text-white
+                    rounded-md
+                    cursor-pointer
 
-                <button>
-                  <a
-  href="#dateSelect"
-  className="
-    inline-block
-    px-10 py-3
-    text-sm
-    font-semibold
-    text-white
-    rounded-md
-    cursor-pointer
-    bg-gradient-to-r
-    from-purple-600
-    via-pink-500
-    to-red-500
-    bg-[length:200%_200%]
-    animate-gradient
-    shadow-lg
-    shadow-purple-500/30
-    transition-all
-    duration-300
-    hover:scale-105
-    hover:shadow-xl
-    hover:shadow-pink-500/40
-    active:scale-95
-  "
->
-  Buy Tickets
-</a>
-                  
+                    bg-gradient-to-r
+                    from-purple-600
+                    via-pink-500
+                    to-red-500
+
+                    bg-[length:200%_200%]
+                    animate-gradient
+
+                    shadow-lg
+                    shadow-purple-500/30
+
+                    transition-all
+                    duration-300
+
+                    hover:scale-105
+                    hover:shadow-xl
+                    hover:shadow-pink-500/40
+
+                    active:scale-95
+                  "
+                >
+                  Buy Tickets
                 </button>
 
-
                 {/* Trailer */}
-
                 {movie.trailer && (
                   <a
                     href={movie.trailer}
@@ -527,21 +567,19 @@ export default function MoviesDetails() {
                       font-semibold
                     "
                   >
-
                     <PlayCircle className="w-5 h-5" />
-
                     Watch Trailer
-
                   </a>
                 )}
 
-
                 {/* Favorite */}
-
                 <button
                   onClick={() =>
-                    setIsFavorite(!isFavorite)
+                    setIsFavorite(
+                      (prev) => !prev
+                    )
                   }
+                  aria-label="Add to favorites"
                   className={`
                     p-3
                     rounded-full
@@ -555,7 +593,6 @@ export default function MoviesDetails() {
                     }
                   `}
                 >
-
                   <Heart
                     className="w-5 h-5"
                     fill={
@@ -564,7 +601,6 @@ export default function MoviesDetails() {
                         : "none"
                     }
                   />
-
                 </button>
 
               </div>
@@ -577,10 +613,9 @@ export default function MoviesDetails() {
 
       </section>
 
-
-      {/* =====================================================
+      {/* =================================================
           CAST SECTION
-      ====================================================== */}
+      ================================================== */}
 
       <section
         className="
@@ -601,85 +636,172 @@ export default function MoviesDetails() {
             mb-7
           "
         >
-
-          <div>
-
-            <p className="text-2xl font-semibold">
-              Your Favorite Stars
-            </p>
-
-          </div>
+          <p className="text-2xl font-semibold">
+            Your Favorite Stars
+          </p>
 
           <Users className="text-[#f84565]" />
+        </div>
+
+        <div
+          className="
+            flex
+            gap-6
+            overflow-x-auto
+            pb-5
+            no-scrollbar
+          "
+        >
+
+          {movie.casts?.slice(0, 9).map(
+            (cast, index) => (
+              <div
+                key={`${cast.name}-${index}`}
+                className="
+                  min-w-[100px]
+                  text-center
+                  group
+                "
+              >
+
+                <img
+                  src={cast.profile_path}
+                  alt={cast.name}
+                  className="
+                    w-24
+                    h-24
+                    rounded-full
+                    object-cover
+                    mx-auto
+                    border
+                    border-white/10
+                    group-hover:border-[#f84565]
+                    transition
+                  "
+                />
+
+                <p
+                  className="
+                    text-sm
+                    font-medium
+                    mt-3
+                    truncate
+                  "
+                >
+                  {cast.name}
+                </p>
+
+              </div>
+            )
+          )}
 
         </div>
 
-<div className="
-  flex
-  gap-6
-  overflow-x-auto
-  pb-5
-  no-scrollbar
-">
-  {movie.casts?.slice(0, 9).map((cast, index) => (
-    <div
-      key={`${cast.name}-${index}`}
-      className="
-        min-w-[100px]
-        text-center
-        group
-      "
-    >
-      <img
-        src={cast.profile_path}
-        alt={cast.name}
-        className="
-          w-24
-          h-24
-          rounded-full
-          object-cover
-          mx-auto
-          border
-          border-white/10
-          group-hover:border-[#f84565]
-          transition
-        "
-      />
+      </section>
 
-      <p className="
-        text-sm
-        font-medium
-        mt-3
-        truncate
-      ">
-        {cast.name}
-      </p>
-    </div>
-  ))}
-</div>
+      {/* =================================================
+          DATE SELECT
+      ================================================== */}
+
+      <section
+        id="dateSelect"
+        className="scroll-mt-20"
+      >
+
+        <DateSelect
+          dates={dates}
+          selectedDate={selectedDate}
+          setSelectedDate={setSelectedDate}
+          selectedShows={selectedShows}
+          selectedTime={selectedTime}
+          setSelectedTime={setSelectedTime}
+          formatDate={formatDate}
+          formatTime={formatTime}
+          handleBooking={handleBooking}
+          dateTime={show.datetime}
+        />
 
       </section>
 
+      {/* =================================================
+          YOU MAY ALSO LIKE
+      ================================================== */}
 
-      {/* =====================================================
-          DATE SELECT / BOOKING SECTION
-      ====================================================== */}
+      <section
+        className="
+          max-w-7xl
+          mx-auto
+          px-6
+          md:px-10
+          lg:px-16
+          pb-20
+        "
+      >
 
-      <DateSelect
-        dates={dates}
-        selectedDate={selectedDate}
-        setSelectedDate={setSelectedDate}
-        selectedShows={selectedShows}
-        selectedTime={selectedTime}
-        setSelectedTime={setSelectedTime}
-        formatDate={formatDate}
-        formatTime={formatTime}
-        handleBooking={handleBooking}
-        dateTime={show.datetime}
-      />
+        <p
+          className="
+            text-2xl
+            font-semibold
+            mt-20
+            mb-8
+          "
+        >
+          You May Also Like
+        </p>
+
+        <div
+          className="
+            flex
+            flex-wrap
+            max-sm:justify-center
+            gap-8
+          "
+        >
+
+          {dummyShowsData
+            .filter(
+              (item) => item.id !== movie.id
+            )
+            .slice(0, 4)
+            .map((item) => (
+              <MovieCard
+                key={item.id}
+                movie={item}
+              />
+            ))}
+
+        </div>
+
+        {/* Show More */}
+        <div className="flex justify-center mt-20">
+
+          <button
+            onClick={() => navigate("/movies")}
+            className="
+              px-10
+              py-3
+              text-sm
+              font-semibold
+              text-white
+              rounded-md
+              cursor-pointer
+              bg-gradient-to-r
+              from-purple-600
+              via-pink-500
+              to-red-500
+              hover:scale-105
+              transition-all
+              duration-300
+            "
+          >
+            Show More
+          </button>
+
+        </div>
+
+      </section>
 
     </div>
   );
 }
-
 
