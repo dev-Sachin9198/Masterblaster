@@ -15,6 +15,8 @@ import {
 
 import toast from "react-hot-toast";
 
+import { useUser } from "@clerk/react";
+
 import {
   dummyShowsData,
   dummyDateTimeData,
@@ -27,6 +29,8 @@ import {
 // ==================================================
 const SeatLayout = () => {
   const navigate = useNavigate();
+
+  const { isSignedIn } = useUser();
 
   const { id, date } = useParams();
 
@@ -233,12 +237,7 @@ const SeatLayout = () => {
       }
 
       // Login
-      const token =
-        localStorage.getItem(
-          "token"
-        );
-
-      if (!token) {
+      if (!isSignedIn) {
 
         toast.error(
           "Please login first to proceed to checkout."
@@ -269,9 +268,7 @@ const SeatLayout = () => {
 
       // Checkout
       navigate(
-        `/checkout?movieId=${movie.id}&showId=${show.showId}&date=${date}&seats=${selectedSeats.join(
-          ","
-        )}&amount=${totalPrice}`
+        `/checkout?movieId=${movie.id}&showId=${show.showId}&date=${date}&seats=${selectedSeats.join(",")}&amount=${totalPrice}`
       );
 
     };

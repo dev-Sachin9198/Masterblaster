@@ -14,13 +14,56 @@ import {
 
 import toast from "react-hot-toast";
 
+import { useUser } from "@clerk/react";
+
 import {
   dummyShowsData,
   dummyDateTimeData,
 } from "../assets/assets";
 
+import { saveBooking } from "../utils/bookingStorage";
+
+// ==================================================
+// Razorpay Config
+// ==================================================
+const RAZORPAY_CHECKOUT_SRC =
+  "https://checkout.razorpay.com/v1/checkout.js";
+
+// Backend URL — set VITE_API_URL in your frontend .env
+// for production; falls back to local dev server.
+const API_BASE_URL =
+  import.meta.env.VITE_API_URL ||
+  "http://localhost:5000";
+
+// Loads the Razorpay checkout script once and reuses it
+// if the user opens checkout more than once.
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+
+    if (
+      document.querySelector(
+        `script[src="${RAZORPAY_CHECKOUT_SRC}"]`
+      )
+    ) {
+      resolve(true);
+      return;
+    }
+
+    const script = document.createElement("script");
+
+    script.src = RAZORPAY_CHECKOUT_SRC;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+
+    document.body.appendChild(script);
+
+  });
+};
+
 const Checkout = () => {
   const navigate = useNavigate();
+
+  const { isSignedIn, user } = useUser();
 
   const [searchParams] =
     useSearchParams();
@@ -187,16 +230,11 @@ const Checkout = () => {
   }
 
   // ==================================================
-  // PAYMENT
+  // PAYMENT (Razorpay)
   // ==================================================
-  const handlePayment = () => {
+  const handlePayment = async () => {
 
-    const token =
-      localStorage.getItem(
-        "token"
-      );
-
-    if (!token) {
+    if (!isSignedIn) {
 
       toast.error(
         "Please login before payment."
@@ -205,24 +243,179 @@ const Checkout = () => {
       return;
     }
 
-    /*
-      Abhi dummy payment hai.
+    // 1. Load Razorpay's checkout script
+    const scriptLoaded =
+      await loadRazorpayScript();
 
-      Real project me yahan:
-      Razorpay / Stripe / backend API
-      connect karna hai.
-    */
+    if (!scriptLoaded) {
 
-    toast.success(
-      "Payment successful! Booking confirmed."
-    );
+      toast.error(
+        "Failed to load payment gateway. Check your internet connection."
+      );
 
-    // Demo booking success
-    setTimeout(() => {
+      return;
+    }
 
-      navigate("/my-booking");
+    try {
 
-    }, 1200);
+      // 2. Ask our backend to create a Razorpay order
+      const orderRes = await fetch(
+        `${API_BASE_URL}/api/payment/create-order`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            amount: totalAmount,
+            bookingInfo: {
+              movie: movie.title,
+              seats: selectedSeats.join(","),
+              showId: show.showId,
+            },
+          }),
+        }
+      );
+
+      const orderData = await orderRes.json();
+
+      if (!orderData.success) {
+
+        toast.error(
+          "Could not initiate payment. Please try again."
+        );
+
+        return;
+      }
+
+      // 3. Open Razorpay Checkout popup
+      const options = {
+        key: orderData.key,
+        amount: orderData.order.amount,
+        currency: orderData.order.currency,
+        name: "MasterBlaster Movies",
+        description: `${movie.title} — ${selectedSeats.join(", ")}`,
+        image: movie.poster_path,
+        order_id: orderData.order.id,
+
+        // Runs when payment succeeds on Razorpay's side
+        handler: async (response) => {
+
+          try {
+
+            // 4. Ask backend to verify the payment signature
+            const verifyRes = await fetch(
+              `${API_BASE_URL}/api/payment/verify`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(response),
+              }
+            );
+
+            const verifyData = await verifyRes.json();
+
+            if (!verifyData.success) {
+
+              toast.error(
+                "Payment verification failed. If money was deducted, contact support."
+              );
+
+              return;
+            }
+
+            // 5. Only after verified payment, save the booking
+            const booking = saveBooking(user.id, {
+              movie: {
+                id: movie.id,
+                title: movie.title,
+                poster_path: movie.poster_path,
+                runtime: movie.runtime,
+              },
+              show: {
+                showId: show.showId,
+                date,
+                time: show.time,
+              },
+              bookedSeats: selectedSeats,
+              amount: totalAmount,
+              paymentId: response.razorpay_payment_id,
+            });
+
+            if (!booking) {
+
+              toast.error(
+                "Payment succeeded but booking could not be saved."
+              );
+
+              return;
+            }
+
+            toast.success(
+              "Payment successful! Booking confirmed."
+            );
+
+            setTimeout(() => {
+
+              navigate("/my-booking");
+
+            }, 1200);
+
+          } catch (err) {
+
+            console.error(
+              "Verification error:",
+              err
+            );
+
+            toast.error(
+              "Something went wrong while verifying your payment."
+            );
+          }
+        },
+
+        prefill: {
+          name: user?.fullName || "",
+          email:
+            user?.primaryEmailAddress
+              ?.emailAddress || "",
+        },
+
+        theme: {
+          color: "#4f46e5",
+        },
+
+        modal: {
+          ondismiss: () => {
+            toast.error("Payment cancelled.");
+          },
+        },
+      };
+
+      const razorpayInstance =
+        new window.Razorpay(options);
+
+      razorpayInstance.on(
+        "payment.failed",
+        (response) => {
+          toast.error(
+            `Payment failed: ${response.error.description}`
+          );
+        }
+      );
+
+      razorpayInstance.open();
+
+    } catch (err) {
+
+      console.error("Payment error:", err);
+
+      toast.error(
+        "Something went wrong. Please try again."
+      );
+    }
   };
 
   // ==================================================
