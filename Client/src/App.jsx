@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 
 import { Toaster } from "react-hot-toast";
 
@@ -16,12 +16,13 @@ import Favorite from "./pages/Favorite";
 import Checkout from "./pages/Checkout";
 
 const App = () => {
+  const isAdminRoute = useLocation().pathname.startsWith("/admin");
   return (
     <>
       {/* =================================================
           NAVBAR
       ================================================= */}
-      <Navbar />
+     { !isAdminRoute && <Navbar /> }
 
       {/* =================================================
           ROUTES
@@ -123,7 +124,7 @@ const App = () => {
       {/* =================================================
           FOOTER
       ================================================= */}
-      <Footer />
+      { !isAdminRoute && <Footer /> }
 
       {/* =================================================
           TOASTER
