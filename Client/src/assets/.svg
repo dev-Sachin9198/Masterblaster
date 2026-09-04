@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600" width="100%" height="100%">
+  <defs>
+    <!-- Background Gradient -->
+    <radialGradient id="bgGrad" cx="50%" cy="45%" r="70%" fx="50%" fy="35%">
+      <stop offset="0%" stop-color="#323842" />
+      <stop offset="60%" stop-color="#1d2228" />
+      <stop offset="100%" stop-color="#111418" />
+    </radialGradient>
+
+    <!-- Metallic Ring Gradients -->
+    <linearGradient id="metalBase" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6e7882" />
+      <stop offset="30%" stop-color="#40474e" />
+      <stop offset="70%" stop-color="#21252a" />
+      <stop offset="100%" stop-color="#555f6a" />
+    </linearGradient>
+
+    <linearGradient id="metalHighlight" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#b0bfc9" stop-opacity="0.8" />
+      <stop offset="50%" stop-color="#40474e" stop-opacity="0.2" />
+      <stop offset="100%" stop-color="#15181c" stop-opacity="0.9" />
+    </linearGradient>
+
+    <!-- Chip Edge Shading -->
+    <radialGradient id="innerRecess" cx="50%" cy="50%" r="50%">
+      <stop offset="70%" stop-color="#1a1d22" stop-opacity="0" />
+      <stop offset="95%" stop-color="#0a0c0f" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.95" />
+    </radialGradient>
+
+    <!-- Cyan Glow Effects -->
+    <filter id="cyanGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="12" result="blur1" />
+      <feGaussianBlur stdDeviation="25" result="blur2" />
+      <feMerge>
+        <feMergeNode in="blur2" />
+        <feMergeNode in="blur1" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <linearGradient id="cyanNeon" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8af5ff" />
+      <stop offset="50%" stop-color="#00d8ea" />
+      <stop offset="100%" stop-color="#0090a8" />
+    </linearGradient>
+
+    <!-- Drop Shadows for 3D Relief -->
+    <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000000" flood-opacity="0.75" />
+    </filter>
+    
+    <filter id="textShadow" x="-10%" y="-20%" width="120%" height="150%">
+      <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#000000" flood-opacity="0.9" />
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1000" height="600" fill="url(#bgGrad)" />
+
+  <!-- Ambient Backdrop Glow behind Logo -->
+  <circle cx="500" cy="230" r="120" fill="#00c8e0" opacity="0.12" filter="blur(30px)" />
+
+  <!-- ==================== LOGO EMBLEM ==================== -->
+  <g transform="translate(500, 230)" filter="url(#dropShadow)">
+    
+    <!-- Outer Rim -->
+    <circle r="110" fill="url(#metalBase)" stroke="#111316" stroke-width="2" />
+    <circle r="105" fill="none" stroke="#8a98a5" stroke-width="1.5" opacity="0.6" />
+    <circle r="96" fill="url(#metalHighlight)" />
+
+    <!-- Edge Notches (Poker Chip Style) -->
+    <!-- Rotated segments to create border indents -->
+    <g fill="#21252a" stroke="#0d0f12" stroke-width="1">
+      <rect x="-10" y="-112" width="20" height="14" rx="2" />
+      <rect x="-10" y="98" width="20" height="14" rx="2" />
+      <rect x="-112" y="-10" width="14" height="20" rx="2" />
+      <rect x="98" y="-10" width="14" height="20" rx="2" />
+      
+      <g transform="rotate(45)">
+        <rect x="-10" y="-112" width="20" height="14" rx="2" />
+        <rect x="-10" y="98" width="20" height="14" rx="2" />
+        <rect x="-112" y="-10" width="14" height="20" rx="2" />
+        <rect x="98" y="-10" width="14" height="20" rx="2" />
+      </g>
+    </g>
+
+    <!-- Inner Track / Groove -->
+    <circle r="86" fill="none" stroke="#15181c" stroke-width="6" />
+    <circle r="83" fill="none" stroke="#606d79" stroke-width="1" opacity="0.4" />
+
+    <!-- Main Chip Face -->
+    <circle r="80" fill="url(#metalBase)" />
+    <circle r="80" fill="url(#innerRecess)" />
+
+    <!-- Inner Metallic Ring Border -->
+    <circle r="65" fill="none" stroke="#2c3238" stroke-width="3" />
+    <circle r="63.5" fill="none" stroke="#7a8895" stroke-width="1" opacity="0.7" />
+
+    <!-- Center Dark Well -->
+    <circle r="62" fill="#14171b" />
+    <circle r="62" fill="radial-gradient(circle, rgba(0,0,0,0) 40%, rgba(0,0,0,0.8) 100%)" />
+
+    <!-- ==================== CENTER PLAY ICON ==================== -->
+    <g filter="url(#cyanGlow)">
+      <!-- Outer Cyan Triangle Glow / Border -->
+      <polygon points="-28,-36 36,0 -28,36" fill="none" stroke="url(#cyanNeon)" stroke-width="6" stroke-linejoin="round" />
+      <!-- Inner White-Cyan Core Triangle -->
+      <polygon points="-22,-28 28,0 -22,28" fill="none" stroke="#ffffff" stroke-width="2" stroke-linejoin="round" opacity="0.9" />
+    </g>
+    
+    <!-- Triangle Inner Dark Fill with soft gradient -->
+    <polygon points="-26,-34 33,0 -26,34" fill="#0c1b22" opacity="0.6" />
+
+    <!-- Specular highlight overlay on emblem top -->
+    <path d="M -110 0 A 110 110 0 0 1 110 0 A 110 50 0 0 0 -110 0 Z" fill="#ffffff" opacity="0.08" pointer-events="none" />
+  </g>
+
+
+  <!-- ==================== TYPOGRAPHY: MASTERBLASTER ==================== -->
+  <g transform="translate(500, 450)" filter="url(#textShadow)" text-anchor="middle">
+    
+    <!-- Text Glow Base -->
+    <text x="0" y="0" 
+          font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" 
+          font-weight="900" 
+          font-size="62" 
+          letter-spacing="6" 
+          fill="url(#metalBase)" 
+          stroke="#000000" 
+          stroke-width="3" 
+          stroke-linejoin="miter">MASTERBLASTER</text>
+
+    <!-- Metallic Surface Layer -->
+    <text x="0" y="0" 
+          font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" 
+          font-weight="900" 
+          font-size="62" 
+          letter-spacing="6" 
+          fill="url(#metalBase)">MASTERBLASTER</text>
+
+    <!-- Top Highlight Mask for 3D Bevel Look on Text -->
+    <text x="0" y="-1" 
+          font-family="system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" 
+          font-weight="900" 
+          font-size="62" 
+          letter-spacing="6" 
+          fill="none" 
+          stroke="#9fb0bc" 
+          stroke-width="1.5" 
+          opacity="0.8">MASTERBLASTER</text>
+          
+  </g>
+
+</svg>
