@@ -117,7 +117,7 @@ const Checkout = () => {
   // ==================================================
   // PRICE
   // ==================================================
-  const ticketPrice = 180;
+  const ticketPrice = 149;
 
   const totalAmount =
     selectedSeats.length *
