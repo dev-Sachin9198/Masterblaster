@@ -15,6 +15,15 @@ import SeatLayout from "./pages/SeatLayout";
 import Favorite from "./pages/Favorite";
 import Checkout from "./pages/Checkout";
 
+
+// Admin Pages
+import AdminLayout from "./pages/admin/AdminLayout";
+import Dashboard from "./pages/admin/Dashboard";
+import AddShow from "./pages/admin/AddShow";
+import ListBookings from "./pages/admin/ListBookings";
+
+
+
 const App = () => {
   const isAdminRoute = useLocation().pathname.startsWith("/admin");
   return (
@@ -70,6 +79,30 @@ const App = () => {
           path="/favorite"
           element={<Favorite />}
         />
+
+         {/* =================================================
+            ADMIN PANEL
+            AdminLayout guards access via Clerk publicMetadata.role
+        ================================================= */}
+        <Route
+          path="/admin"
+          element={<AdminLayout />}
+        >
+          <Route
+            index
+            element={<Dashboard />}
+          />
+
+          <Route
+            path="add-show"
+            element={<AddShow />}
+          />
+
+          <Route
+            path="bookings"
+            element={<ListBookings />}
+          />
+        </Route>
 
         {/* 404 */}
         <Route
