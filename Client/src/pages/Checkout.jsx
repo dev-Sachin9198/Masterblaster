@@ -965,7 +965,7 @@ const Checkout = () => {
                   mt-6
                   py-4
                   rounded-xl
-                  
+                  bg-blue-300
                   from-indigo-600
                   via-purple-600
                   to-pink-600

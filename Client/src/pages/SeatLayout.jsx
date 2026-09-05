@@ -95,7 +95,7 @@ const SeatLayout = () => {
 
   const seatsPerRow = 10;
 
-  const ticketPrice = 180;
+  const ticketPrice = 149;
 
   // ==================================================
   // OCCUPIED SEATS
