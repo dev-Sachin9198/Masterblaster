@@ -54,3 +54,38 @@ export const getUserBookings = (userId) => {
     (booking) => booking.user === userId
   );
 };
+
+// ==================================================
+// Get EVERY booking across all users — admin panel only.
+// Do not use this on user-facing pages.
+// ==================================================
+export const getAllBookingsAdmin = () => {
+  return getAllBookings().slice().sort(
+    (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+  );
+};
+
+// ==================================================
+// Dashboard stats — admin panel only
+// ==================================================
+export const getBookingStats = () => {
+  const bookings = getAllBookings();
+
+  const totalBookings = bookings.length;
+
+  const totalRevenue = bookings.reduce(
+    (sum, booking) => sum + (Number(booking.amount) || 0),
+    0
+  );
+
+  const totalUsers = new Set(
+    bookings.map((booking) => booking.user)
+  ).size;
+
+  return {
+    totalBookings,
+    totalRevenue,
+    totalUsers,
+  };
+};
+
